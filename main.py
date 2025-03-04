@@ -7,7 +7,7 @@ import logging
 from contextlib import contextmanager
 
 from tools import GmailClient, EmailType
-from analyzer import analyze_email_with_ai
+from analyzer import EmailAnalyzer
 
 # --- Setup Logging ---
 logging.basicConfig(
@@ -147,7 +147,7 @@ def run_finance_tracker(email_address: str):
         try:
             end_time = datetime.now()
             last_processed_time = get_last_processed_time()
-            start_time = last_processed_time or (end_time - timedelta(hours=3))
+            start_time = last_processed_time or (end_time - timedelta(hours=24))
             if last_processed_time:
                 start_time -= timedelta(minutes=10)
             
@@ -169,7 +169,7 @@ def run_finance_tracker(email_address: str):
                         logger.info(f"Email already processed: {email['id']}. Skipping.")
                         continue
                     logger.info(f"Processing email: {email['subject']} (ID: {email['id']})")
-                    transaction = analyze_email_with_ai(email)
+                    transaction = EmailAnalyzer.analyze_email(email)
                     if transaction:
                         logger.info(f"Transaction extracted: {transaction}")
                         success = store_transaction(transaction)
@@ -186,20 +186,20 @@ def run_finance_tracker(email_address: str):
             time.sleep(RETRY_DELAY)
 
 # --- Example Usage ---
-if __name__ == "__main__":
-    import argparse
+# if __name__ == "__main__":
+#     import argparse
     
-    parser = argparse.ArgumentParser(description="Finance Tracker - Email Transaction Analyzer")
-    parser.add_argument("--email", required=True, help="Email address to monitor")
-    parser.add_argument("--interval", type=int, help="Polling interval in hours (default: 3)")
-    parser.add_argument("--db", help="Path to SQLite database file (default: finance_tracker.db)")
+#     parser = argparse.ArgumentParser(description="Finance Tracker - Email Transaction Analyzer")
+#     parser.add_argument("--email", required=True, help="Email address to monitor")
+#     parser.add_argument("--interval", type=int, help="Polling interval in hours (default: 24)")
+#     parser.add_argument("--db", help="Path to SQLite database file (default: finance_tracker.db)")
     
-    args = parser.parse_args()
+#     args = parser.parse_args()
     
-    if args.interval:
-        os.environ["POLLING_INTERVAL"] = str(args.interval * 60 * 60)
+#     if args.interval:
+#         os.environ["POLLING_INTERVAL"] = str(args.interval * 60 * 60)
     
-    if args.db:
-        os.environ["DB_PATH"] = args.db
+#     if args.db:
+#         os.environ["DB_PATH"] = args.db
     
-    run_finance_tracker(args.email)
+#     run_finance_tracker(args.email)
